@@ -9,7 +9,7 @@ import weka.core.Instances;
 /**
  * Training and testing using ANN.
  * 
- * @author minfanphd
+ * @author Fan Min. minfanphd@163.com.
  *
  */
 public class TrainingTesting {
@@ -179,7 +179,8 @@ public class TrainingTesting {
 	 *            Learning rate.
 	 * @param paraMobp
 	 *            动量系数
-	 * @param paraRounds The training rounds.
+	 * @param paraRounds
+	 *            The training rounds.
 	 ********************
 	 */
 	public void train(int[] paraLayerNumNodes, double paraRate,
@@ -190,8 +191,9 @@ public class TrainingTesting {
 
 		for (int i = 0; i < paraRounds; i++) {
 			for (int j = 0; j < trainingDataInput.length; j++) {
-				//System.out.println("Training with " + Arrays.toString(trainingDataInput[j])
-				//		+ " and " + Arrays.toString(trainingDataOutput[j]));
+				// System.out.println("Training with " +
+				// Arrays.toString(trainingDataInput[j])
+				// + " and " + Arrays.toString(trainingDataOutput[j]));
 				network.train(trainingDataInput[j], trainingDataOutput[j]);
 			}// Of for j
 		}// Of for i
@@ -200,6 +202,7 @@ public class TrainingTesting {
 	/**
 	 ********************
 	 * test the network with the testing set.
+	 * 
 	 * @return The accuracy.
 	 ********************
 	 */
@@ -210,25 +213,29 @@ public class TrainingTesting {
 		double tempMax;
 		for (int i = 0; i < testingDataInput.length; i++) {
 			tempOut = network.computeOut(testingDataInput[i]);
-			//System.out.println("The prediction is: " + Arrays.toString(tempOut)
-			//		+ " while the actual output is: " + Arrays.toString(testingDataOutput[i]));
+			// System.out.println("The prediction is: " +
+			// Arrays.toString(tempOut)
+			// + " while the actual output is: " +
+			// Arrays.toString(testingDataOutput[i]));
 			tempMax = tempOut[0];
 			tempMaxIndex = 0;
-			
+
 			for (int j = 1; j < tempOut.length; j++) {
 				if (tempMax < tempOut[j]) {
 					tempMax = tempOut[j];
 					tempMaxIndex = j;
-				}//Of if
-			}//Of for j
-			
+				}// Of if
+			}// Of for j
+
 			if (testingDataOutput[i][tempMaxIndex] == 1) {
-				tempCorrect ++;
-			}//Of if
-		}//Of for i
+				tempCorrect++;
+			}// Of if
+		}// Of for i
+		System.out.println("" + tempCorrect + " correct among "
+				+ testingDataInput.length + " instances.");
 		return tempCorrect / testingDataInput.length;
-	}//Of test
-	
+	}// Of test
+
 	/**
 	 ********************
 	 * Show me.
@@ -259,14 +266,14 @@ public class TrainingTesting {
 	 */
 	public static void main(String[] args) {
 		TrainingTesting tempTrainingTesting = new TrainingTesting(
-				"src/data/iris.arff");
+		// "src/data/iris.arff");
+				"src/data/wdbc_norm_ex.arff");
 		tempTrainingTesting.splitInTwo(0.7);
-		System.out.println(tempTrainingTesting);
-		
-		tempTrainingTesting.train(new int[] { 4, 10, 10, 3 }, 0.15,
-				0.8, 10000);
+		// System.out.println(tempTrainingTesting);
+
+		tempTrainingTesting.train(new int[] { 4, 10, 10, 3 }, 0.15, 0.8, 1000);
 		double tempAccuracy = tempTrainingTesting.test();
-		
+
 		System.out.println("The accuracy is: " + tempAccuracy);
 	}// Of main
 }// Of class TrainingTesting

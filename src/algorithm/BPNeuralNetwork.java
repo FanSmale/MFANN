@@ -3,6 +3,12 @@ package algorithm;
 import java.util.Arrays;
 import java.util.Random;
 
+/**
+ * Back-propagation neural networks.
+ * The code comes from https://mp.weixin.qq.com/s?__biz=MjM5MjAwODM4MA==&mid=402665740&idx=1&sn=18d84d72934e59ca8bcd828782172667 
+ * @author ลํิจ
+ */
+
 public class BPNeuralNetwork {
 
 	/**
