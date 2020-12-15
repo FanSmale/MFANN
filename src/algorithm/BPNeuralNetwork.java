@@ -4,12 +4,20 @@ import java.util.Arrays;
 import java.util.Random;
 
 /**
- * Back-propagation neural networks.
- * The code comes from https://mp.weixin.qq.com/s?__biz=MjM5MjAwODM4MA==&mid=402665740&idx=1&sn=18d84d72934e59ca8bcd828782172667 
+ * Back-propagation neural networks. The code comes from
+ * https://mp.weixin.qq.com
+ * /s?__biz=MjM5MjAwODM4MA==&mid=402665740&idx=1&sn=18d84d
+ * 72934e59ca8bcd828782172667
+ * 
  * @author 彭渊
  */
 
 public class BPNeuralNetwork {
+
+	/**
+	 * 层数
+	 */
+	int numLayers;
 
 	/**
 	 * 每层的结点数（本数组长度即为层数）
@@ -19,22 +27,22 @@ public class BPNeuralNetwork {
 	/**
 	 * 神经网络各层节点(对应的临时值)
 	 */
-	public double[][] layer;
+	public double[][] layerNodes;
 
 	/**
 	 * 神经网络各节点误差
 	 */
-	public double[][] layerErr;
+	public double[][] layerNodesErr;
 
 	/**
-	 * 各层节点权重
+	 * 网络各边权重
 	 */
-	public double[][][] layer_weight;
+	public double[][][] edgeWeights;
 
 	/**
 	 * 各层节点权重动量
 	 */
-	public double[][][] layer_weight_delta;
+	public double[][][] edgeWeightsDelta;
 
 	/**
 	 * 动量系数
@@ -67,29 +75,31 @@ public class BPNeuralNetwork {
 			double paraMobp) {
 		// Step 1. Accept parameters.
 		layerNumNodes = paraLayerNumNodes;
+		numLayers = layerNumNodes.length;
 		rate = paraRate;
 		mobp = paraMobp;
 
 		// Step 2. Across layer initialization.
-		layer = new double[layerNumNodes.length][];
-		layerErr = new double[layerNumNodes.length][];
-		// 好像应该是layerNumNodes.length - 1
-		layer_weight = new double[layerNumNodes.length][][];
-		layer_weight_delta = new double[layerNumNodes.length][][];
+		layerNodes = new double[numLayers][];
+		layerNodesErr = new double[numLayers][];
+		// 将numLayers改为了numLayers - 1
+		edgeWeights = new double[numLayers - 1][][];
+		edgeWeightsDelta = new double[numLayers - 1][][];
 
 		// Step 3. Inner layer initialization.
-		for (int l = 0; l < layerNumNodes.length; l++) {
-			layer[l] = new double[layerNumNodes[l]];
-			layerErr[l] = new double[layerNumNodes[l]];
+		for (int l = 0; l < numLayers; l++) {
+			layerNodes[l] = new double[layerNumNodes[l]];
+			layerNodesErr[l] = new double[layerNumNodes[l]];
 
-			if (l + 1 < layerNumNodes.length) {
-				// 第1个+1为偏移量保留
-				layer_weight[l] = new double[layerNumNodes[l] + 1][layerNumNodes[l + 1]];
-				layer_weight_delta[l] = new double[layerNumNodes[l] + 1][layerNumNodes[l + 1]];
+			// 边的层数比节点层数少1
+			if (l + 1 < numLayers) {
+				// 第1个+1为偏移量保留. layerNumNodes[l]为本层点数.
+				edgeWeights[l] = new double[layerNumNodes[l] + 1][layerNumNodes[l + 1]];
+				edgeWeightsDelta[l] = new double[layerNumNodes[l] + 1][layerNumNodes[l + 1]];
 				for (int j = 0; j < layerNumNodes[l] + 1; j++) {
 					for (int i = 0; i < layerNumNodes[l + 1]; i++) {
 						// 随机初始化权重
-						layer_weight[l][j][i] = random.nextDouble();
+						edgeWeights[l][j][i] = random.nextDouble();
 					}// Of for i
 				}// Of for j
 			}// Of if
@@ -105,21 +115,31 @@ public class BPNeuralNetwork {
 	 ********************
 	 */
 	public double[] computeOut(double[] paraIn) {
-		for (int l = 1; l < layer.length; l++) {
-			for (int j = 0; j < layer[l].length; j++) {
+		// 初始化输入层
+		for (int i = 0; i < layerNodes[0].length; i++) {
+			layerNodes[0][i] = paraIn[i];
+		}// Of for i
+
+		// 逐层计算节点值
+		for (int l = 1; l < numLayers; l++) {
+			for (int j = 0; j < layerNodes[l].length; j++) {
+				// 初始化为偏移量, 因为它的输入为 +1
+				double z = edgeWeights[l - 1][layerNodes[l - 1].length][j];
 				// 计算加权和
-				double z = layer_weight[l - 1][layer[l - 1].length][j];
-				for (int i = 0; i < layer[l - 1].length; i++) {
-					// 也可以把paraIn拷贝到layer[0]
-					layer[l - 1][i] = l == 1 ? paraIn[i] : layer[l - 1][i];
-					z += layer_weight[l - 1][i][j] * layer[l - 1][i];
+				for (int i = 0; i < layerNodes[l - 1].length; i++) {
+					// 移到方法开始位置, 增加可读性
+					// layerNodes[l - 1][i] = l == 1 ? paraIn[i] : layerNodes[l
+					// - 1][i];
+					// l - 1表示边的层号, i表示上一层节点号, j表示本层节点号
+					z += edgeWeights[l - 1][i][j] * layerNodes[l - 1][i];
 				}// Of for i
 
 				// Sigmoid激活函数
-				layer[l][j] = 1 / (1 + Math.exp(-z));
+				layerNodes[l][j] = 1 / (1 + Math.exp(-z));
 			}// Of for j
 		}// Of for l
-		return layer[layer.length - 1];
+
+		return layerNodes[numLayers - 1];
 	}// Of computeOut
 
 	/**
@@ -132,39 +152,46 @@ public class BPNeuralNetwork {
 	 */
 	public void updateWeight(double[] paraTarget) {
 		// Step 1. 初始化输出层误差
-		int l = layer.length - 1;
-		for (int j = 0; j < layerErr[l].length; j++) {
-			layerErr[l][j] = layer[l][j] * (1 - layer[l][j])
-					* (paraTarget[j] - layer[l][j]);
+		int l = numLayers - 1;
+		for (int j = 0; j < layerNodesErr[l].length; j++) {
+			layerNodesErr[l][j] = layerNodes[l][j] * (1 - layerNodes[l][j])
+					* (paraTarget[j] - layerNodes[l][j]);
 		}// Of for j
 
-		// Step 2. 逐层反馈
-		while (l-- > 0) {
-			// 逐个节点计算
-			for (int j = 0; j < layerErr[l].length; j++) {
+		// Step 2. 逐层反馈, l == 0时也需要计算
+		while (l > 0) {
+			l--;
+			// 第l层, 逐个节点计算
+			for (int j = 0; j < layerNumNodes[l]; j++) {
 				double z = 0.0;
 				// 针对下一层的每个节点
-				for (int i = 0; i < layerErr[l + 1].length; i++) {
-					z = z + l > 0 ? layerErr[l + 1][i] * layer_weight[l][j][i]
-							: 0;
+				for (int i = 0; i < layerNumNodes[l + 1]; i++) {
+					if (l > 0) {
+						z += layerNodesErr[l + 1][i] * edgeWeights[l][j][i];
+					}// Of if
+
+					// z = z + l > 0 ? layerNodesErr[l + 1][i] *
+					// edgeWeights[l][j][i] : 0;
+
 					// 隐含层动量调整
-					layer_weight_delta[l][j][i] = mobp
-							* layer_weight_delta[l][j][i] + rate
-							* layerErr[l + 1][i] * layer[l][j];
+					edgeWeightsDelta[l][j][i] = mobp
+							* edgeWeightsDelta[l][j][i] + rate
+							* layerNodesErr[l + 1][i] * layerNodes[l][j];
 					// 隐含层权重调整
-					layer_weight[l][j][i] += layer_weight_delta[l][j][i];
-					if (j == layerErr[l].length - 1) {
+					edgeWeights[l][j][i] += edgeWeightsDelta[l][j][i];
+					if (j == layerNumNodes[l] - 1) {
 						// 截距动量调整
-						layer_weight_delta[l][j + 1][i] = mobp
-								* layer_weight_delta[l][j + 1][i] + rate
-								* layerErr[l + 1][i];
+						edgeWeightsDelta[l][j + 1][i] = mobp
+								* edgeWeightsDelta[l][j + 1][i] + rate
+								* layerNodesErr[l + 1][i];
 						// 截距权重调整
-						layer_weight[l][j + 1][i] += layer_weight_delta[l][j + 1][i];
+						edgeWeights[l][j + 1][i] += edgeWeightsDelta[l][j + 1][i];
 					}// Of if
 				}// Of for i
 
 				// 记录误差
-				layerErr[l][j] = z * layer[l][j] * (1 - layer[l][j]);
+				layerNodesErr[l][j] = layerNodes[l][j] * (1 - layerNodes[l][j])
+						* z;
 			}// Of for j
 		}// Of while
 	}// Of updateWeight
@@ -215,7 +242,7 @@ public class BPNeuralNetwork {
 			double[] result = bp.computeOut(data[j]);
 			System.out.println(Arrays.toString(data[j]) + ":"
 					+ Arrays.toString(result));
-		}//Of for j
+		}// Of for j
 
 		// 根据训练结果来预测一条新数据的分类
 		double[] x = new double[] { 3, 1 };
@@ -230,5 +257,5 @@ public class BPNeuralNetwork {
 		result = bp.computeOut(x);
 		System.out.println("Predict new data");
 		System.out.println(Arrays.toString(x) + ":" + Arrays.toString(result));
-	}//Of main
+	}// Of main
 }// Of class BPNeuralNetwork

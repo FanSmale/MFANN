@@ -271,7 +271,7 @@ public class TrainingTesting {
 		tempTrainingTesting.splitInTwo(0.7);
 		// System.out.println(tempTrainingTesting);
 
-		tempTrainingTesting.train(new int[] { 4, 10, 10, 3 }, 0.15, 0.8, 1000);
+		tempTrainingTesting.train(new int[] { 4, 10, 12, 3 }, 0.15, 0.8, 1000);
 		double tempAccuracy = tempTrainingTesting.test();
 
 		System.out.println("The accuracy is: " + tempAccuracy);
