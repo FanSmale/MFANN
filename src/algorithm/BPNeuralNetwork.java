@@ -187,11 +187,11 @@ public class BPNeuralNetwork {
 						// 截距权重调整
 						edgeWeights[l][j + 1][i] += edgeWeightsDelta[l][j + 1][i];
 					}// Of if
-					if ((i == 0) && (j == 0)) {
-						System.out.println("Layer " + l + " j = " + j
-								+ ", edgeWeightsDelta = "
-								+ edgeWeightsDelta[l][j + 1][i]);
-					}// Of if
+					//if ((i == 0) && (j == 0)) {
+					//	System.out.println("Layer " + l + " j = " + j
+					//			+ ", edgeWeightsDelta = "
+					//			+ edgeWeightsDelta[l][j + 1][i]);
+					//}// Of if
 				}// Of for i
 
 				// 记录误差
